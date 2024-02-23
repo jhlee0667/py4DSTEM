@@ -648,7 +648,7 @@ class PtychographicTomography(
                 old_rot_matrix.T,
             )
 
-            gaussian_filter = scipy.ndimage.gaussian_filter #cuda gaussian_filter is so slow
+            gaussian_filter = scipy.ndimage.gaussian_filter
             probe_overlap_3D_blurred = gaussian_filter(asnumpy(probe_overlap_3D), 1.0)
             self._object_fov_mask = asnumpy(
                 probe_overlap_3D_blurred > 0.25 * probe_overlap_3D_blurred.max()
