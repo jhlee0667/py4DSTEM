@@ -2083,7 +2083,7 @@ class PtychographicReconstruction(PhaseReconstruction):
                 warnings.warn(
                     (
                         first_line + f"with the {reconstruction_method} algorithm, "
-                        f"with normalization_min: {normalization_min} and step _size: {step_size}, "
+                        f"with normalization_min: {normalization_min} and step_size: {step_size}, "
                         f"in batches of max {max_batch_size} measurements."
                     ),
                     UserWarning,
@@ -2116,7 +2116,7 @@ class PtychographicReconstruction(PhaseReconstruction):
                 warnings.warn(
                     (
                         first_line + f"with the {reconstruction_method} algorithm, "
-                        f"with normalization_min: {normalization_min} and step _size: {step_size}."
+                        f"with normalization_min: {normalization_min} and step_size: {step_size}."
                     ),
                     UserWarning,
                 )

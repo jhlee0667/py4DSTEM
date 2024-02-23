@@ -8,6 +8,7 @@ from typing import Mapping, Sequence, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from py4DSTEM.visualize.vis_special import Complex2RGB, add_colorbar_arg
 
@@ -167,16 +168,33 @@ class PtychographicTomography(
         for key in kwargs.keys():
             if (key not in polar_symbols) and (key not in polar_aliases.keys()):
                 raise ValueError("{} not a recognized parameter".format(key))
-
-        self._polar_parameters = dict(zip(polar_symbols, [0.0] * len(polar_symbols)))
+            
+        num_tilts = len(tilt_orientation_matrices)
 
         if polar_parameters is None:
-            polar_parameters = {}
+           polar_parameters = {}
 
-        polar_parameters.update(kwargs)
-        self._set_polar_parameters(polar_parameters)
+        #polar_parameters.update(kwargs)
+        #self._set_polar_parameters(polar_parameters)
+           
+        if kwargs is None:
+            kwargs = {}
 
-        num_tilts = len(tilt_orientation_matrices)
+        self._polar_parameters_all_initial = []
+        for tilt_index in range(0, num_tilts):
+            tmp_polar_parameters = dict(zip(polar_symbols, [0.0] * len(polar_symbols)))
+            for symbol, value in kwargs.items():
+                if symbol in tmp_polar_parameters.keys():
+                    tmp_polar_parameters[symbol] = value[tilt_index]
+                elif symbol == "defocus":
+                    tmp_polar_parameters[polar_aliases[symbol]] = -value[tilt_index]
+                elif symbol in polar_aliases.keys():
+                    tmp_polar_parameters[polar_aliases[symbol]] = value[tilt_index]
+                else:
+                    raise ValueError("{} not a recognized parameter".format(symbol))
+            self._polar_parameters_all_initial.append(tmp_polar_parameters)
+
+
         if initial_scan_positions is None:
             initial_scan_positions = [None] * num_tilts
 
@@ -535,6 +553,7 @@ class PtychographicTomography(
         list_Q = isinstance(self._probe_init, (list, tuple))
 
         for index in range(self._num_measurements):
+            self._polar_parameters = self._polar_parameters_all_initial[index]
             _probe, self._semiangle_cutoff = self._initialize_probe(
                 self._probe_init[index] if list_Q else self._probe_init,
                 self._vacuum_probe_intensity,
@@ -629,8 +648,8 @@ class PtychographicTomography(
                 old_rot_matrix.T,
             )
 
-            gaussian_filter = self._scipy.ndimage.gaussian_filter
-            probe_overlap_3D_blurred = gaussian_filter(probe_overlap_3D, 1.0)
+            gaussian_filter = scipy.ndimage.gaussian_filter #cuda gaussian_filter is so slow
+            probe_overlap_3D_blurred = gaussian_filter(asnumpy(probe_overlap_3D), 1.0)
             self._object_fov_mask = asnumpy(
                 probe_overlap_3D_blurred > 0.25 * probe_overlap_3D_blurred.max()
             )
